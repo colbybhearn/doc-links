@@ -2,6 +2,7 @@
   "name": "doc-links",
   "displayName": "Doc Links",
   "publisher": "colby-b-hearn",
+  "license": "MIT",
   "description": "Reference images/documents from code comments with @Doc: and open them in a popup panel",
   "version": "0.1.1",
   "engines": {
