@@ -2,6 +2,9 @@
 
 Reference images/documents stored in the repo's `.docs/` folder directly from code comments, and open them in a closeable popup panel next to your code.
 
+## Why
+I made this extension because I am constantly referencing technical drawings and schematics in order to work on very intricate 2d and 3d code. Without a reference diagram, maintenance is extremely time consuming and wasteful. ASCII art just cannot captue technical documentation clearly, so images are critical artifacts I need to keep organized. Now my images and .md files are in-line with the relevant code and in the repo, not just off in a folder or sketches on my desk.
+
 ## Syntax
 
 Inside any comment, anywhere in a line:
