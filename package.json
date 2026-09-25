@@ -1,0 +1,57 @@
+{
+  "name": "doc-links",
+  "displayName": "Doc Links",
+  "publisher": "colby-b-hearn",
+  "description": "Reference images/documents from code comments with @Doc: and open them in a popup panel",
+  "version": "0.1.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "docLinks.openDoc",
+        "title": "Doc Links: Open Referenced Document"
+      },
+      {
+        "command": "docLinks.attachDoc",
+        "title": "Doc Links: Attach Image/Document and Insert Reference"
+      }
+    ],
+    "configuration": {
+      "title": "Doc Links",
+      "properties": {
+        "docLinks.docsFolder": {
+          "type": "string",
+          "default": ".docs",
+          "description": "Folder (relative to workspace root) where referenced documents are stored."
+        },
+        "docLinks.openUrlsExternally": {
+          "type": "boolean",
+          "default": false,
+          "description": "When a @Doc: reference is a URL, open it in the system's default browser instead of VS Code's built-in Simple Browser tab."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./ && node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "node esbuild.js --production",
+    "vscode:prepublish": "npm run package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.4.0"
+  }
+}
