@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 
 /**
- * Matches `@Doc:relative/path.ext` anywhere inside a line (works inside any
- * comment style since it doesn't care about the comment marker itself).
- * Captures the path and, optionally, trailing descriptive text. Paths
- * containing spaces must be wrapped in double quotes, e.g.
+ * Matches `@Doc:relative/path.ext` (or `@Doc: relative/path.ext`, with a
+ * single optional space after the colon) anywhere inside a line (works
+ * inside any comment style since it doesn't care about the comment marker
+ * itself). Captures the path and, optionally, trailing descriptive text.
+ * Paths containing spaces must be wrapped in double quotes, e.g.
  * `@Doc:"my file.png" description`.
  */
-const DOC_REF_RE = /@Doc:(?:"([^"]+)"|(\S+))(?:\s+(.*))?/i;
+const DOC_REF_RE = /@Doc: ?(?:"([^"]+)"|(\S+))(?:\s+(.*))?/i;
 
 export interface DocRefMatch {
   /** Path as written in the source, relative to the docs folder. */
@@ -26,9 +27,13 @@ export function findDocRefsInLine(line: string, lineNumber: number): DocRefMatch
     const refPath = m[1] ?? m[2];
     const description = (m[3] ?? '').trim();
     const tokenStart = m.index;
-    const tokenText = m[1] !== undefined ? `@Doc:"${refPath}"` : `@Doc:${refPath}`;
+    const pathText = m[1] !== undefined ? `"${refPath}"` : refPath;
+    // m[0] up through the matched path (before any trailing description) —
+    // reconstruct its length directly so an optional space after the colon
+    // (or none at all) is measured correctly rather than assumed.
+    const tokenLength = m[0].indexOf(pathText, '@Doc:'.length) + pathText.length;
     const start = new vscode.Position(lineNumber, tokenStart);
-    const end = new vscode.Position(lineNumber, tokenStart + tokenText.length);
+    const end = new vscode.Position(lineNumber, tokenStart + tokenLength);
     results.push({ refPath, description, range: new vscode.Range(start, end) });
     // avoid infinite loop on zero-length matches
     if (m[0].length === 0) {

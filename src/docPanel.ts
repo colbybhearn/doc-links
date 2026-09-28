@@ -50,6 +50,64 @@ export async function showDocPanel(context: vscode.ExtensionContext, docUri: vsc
   panel.webview.html = renderHtml(webviewUri, ext, title);
 }
 
+/**
+ * Shows a @Doc: URL reference in our own webview panel, embedded in an
+ * iframe, always opened Beside — unlike the built-in Simple Browser, whose
+ * viewColumn option is not reliably honored on desktop VS Code.
+ */
+export async function showUrlPanel(uri: vscode.Uri, title: string): Promise<void> {
+  if (currentPanel) {
+    currentPanel.dispose();
+  }
+
+  const panel = vscode.window.createWebviewPanel(
+    'docLinksPreview',
+    title,
+    { viewColumn: vscode.ViewColumn.Beside, preserveFocus: false },
+    {
+      // The framed page needs to run its own JS — VS Code's webview host
+      // appears to gate the embedded iframe's script capability on this
+      // flag too, not just our own page's inline CSP.
+      enableScripts: true,
+      retainContextWhenHidden: true
+    }
+  );
+  currentPanel = panel;
+  panel.onDidDispose(() => {
+    if (currentPanel === panel) {
+      currentPanel = undefined;
+    }
+  });
+
+  panel.webview.html = renderUrlHtml(uri, title);
+}
+
+function renderUrlHtml(uri: vscode.Uri, title: string): string {
+  const escapedTitle = escapeHtml(title);
+  const url = uri.toString(true);
+  const escapedUrl = escapeHtml(url);
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; frame-src ${escapeHtml(uri.scheme)}://*; style-src 'unsafe-inline';">
+<style>
+  html, body { height: 100%; margin: 0; background: var(--vscode-editor-background); }
+  body { display: flex; flex-direction: column; }
+  .toolbar { padding: 6px 10px; font-family: var(--vscode-font-family); color: var(--vscode-foreground); border-bottom: 1px solid var(--vscode-panel-border); font-size: 12px; }
+  .toolbar a { color: var(--vscode-textLink-foreground); }
+  iframe { flex: 1; width: 100%; border: 0; background: white; }
+  .note { padding: 8px 10px; font-family: var(--vscode-font-family); color: var(--vscode-descriptionForeground); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="toolbar">${escapedTitle} — <a href="${escapedUrl}">open externally</a></div>
+  <iframe src="${escapedUrl}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-pointer-lock allow-orientation-lock"></iframe>
+  <div class="note">If the page appears blank, it may refuse to be embedded — use "open externally" above.</div>
+</body>
+</html>`;
+}
+
 function renderHtml(webviewUri: vscode.Uri, ext: string, title: string): string {
   const escapedTitle = escapeHtml(title);
   if (IMAGE_EXTENSIONS.has(ext)) {
